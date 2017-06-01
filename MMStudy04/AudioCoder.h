@@ -5,7 +5,7 @@
 
 namespace mmAudio {
 	enum CodeType {
-		Loseless, DPCM, DM
+		Loseless, DPCM, DM, ADPCM
 	};
 
 	//Stupid Rat Style Commit, keep it stupid simple.
@@ -31,4 +31,6 @@ namespace mmAudio {
 	*/
 	void decode(std::istream& in, std::ostream& out,
 		const std::function<uint8_t(const std::vector<uint8_t>)>& predictor);
+
+
 }

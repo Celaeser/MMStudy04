@@ -12,7 +12,7 @@
 			  "-i path : Set wave data file path\n"\
 			  "-e path : Set path of output encode text file( default for xxx_encode.txt )\n"\
 			  "-d path : Set path of output decode text file( default for xxx_decode.txt )\n"\
-			  "-m encode method(Loseless \\ DPCM \\ DM \\ All) : Set encode method( default for Loseless )\n"
+			  "-m encode method(Loseless \\ DPCM \\ DM \\ ADPCM) : Set encode method( default for Loseless )\n"
 
 int main(int argc, char* argv[])
 {
@@ -93,26 +93,24 @@ int main(int argc, char* argv[])
 
 	if (!over) {
 		std::cout << "encoding..." << std::endl;
+
+		auto predictor = [](const std::vector<uint8_t>& seq) {
+			return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
+		}; 
+
 		switch (type)
 		{
 		case mmAudio::Loseless:
-			mmAudio::encode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			}, [](int8_t error)
-			{ return error; });
+			mmAudio::encode(fin, fout, predictor, [](int8_t error) { return error; });
 			break;
 
 		case mmAudio::DPCM:
-			mmAudio::encode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			}, [](int8_t error)
+			mmAudio::encode(fin, fout, predictor, [](int8_t error)
 			{ return 16 * ((error + 127) / 16) - 128 + 8; });
 			break;
 
 		case mmAudio::DM:
-			mmAudio::encode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			}, [](int8_t error)
+			mmAudio::encode(fin, fout, predictor, [](int8_t error)
 			{ return error > 0 ? 3 : -3; });
 			break;
 		}
@@ -130,21 +128,15 @@ int main(int argc, char* argv[])
 		switch (type)
 		{
 		case mmAudio::Loseless:
-			mmAudio::decode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			});
+			mmAudio::decode(fin, fout, predictor);
 			break;
 
 		case mmAudio::DPCM:
-			mmAudio::decode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			});
+			mmAudio::decode(fin, fout, predictor);
 			break;
 
 		case mmAudio::DM:
-			mmAudio::decode(fin, fout, [](const std::vector<uint8_t>& seq) {
-				return seq.size() > 1 ? (seq.back() + seq[seq.size() - 2]) / 2 : seq[0];
-			});
+			mmAudio::decode(fin, fout, predictor);
 			break;
 		}
 
